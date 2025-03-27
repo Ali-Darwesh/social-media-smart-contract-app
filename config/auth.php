@@ -14,7 +14,7 @@ return [
     */
 
     'defaults' => [
-        'guard' => 'web',
+        'guard' => 'api',
         'passwords' => 'users',
     ],
 
@@ -34,14 +34,36 @@ return [
     | Supported: "session"
     |
     */
-
+    
     'guards' => [
-        'web' => [
-            'driver' => 'session',
+        'api' => [
+            'driver' => 'passport',
             'provider' => 'users',
         ],
+        'admin-api' => [
+            'driver' => 'passport',
+            'provider' => 'admins',
+        ],
+        'supervisor-api' => [
+            'driver' => 'passport',
+            'provider' => 'supervisors',
+        ],
     ],
-
+    
+    'providers' => [
+        'users' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\User::class,
+        ],
+        'admins' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\Admin::class,
+        ],
+        'supervisors' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\Supervisor::class,
+        ],
+    ],
     /*
     |--------------------------------------------------------------------------
     | User Providers
@@ -59,17 +81,6 @@ return [
     |
     */
 
-    'providers' => [
-        'users' => [
-            'driver' => 'eloquent',
-            'model' => App\Models\User::class,
-        ],
-
-        // 'users' => [
-        //     'driver' => 'database',
-        //     'table' => 'users',
-        // ],
-    ],
 
     /*
     |--------------------------------------------------------------------------
