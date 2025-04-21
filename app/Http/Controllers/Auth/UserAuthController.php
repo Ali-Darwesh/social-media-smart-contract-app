@@ -3,110 +3,86 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Auth\LoginUserRequest;
+use App\Http\Requests\Auth\RegisterUserRequest;
+use App\Services\Auth\UserAuthService;
 use Illuminate\Http\Request;
-use App\Models\User;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
-
 
 class UserAuthController extends Controller
 {
-    
-    public function register(Request $request)
+    protected $userAuthService;
+
+    public function __construct(UserAuthService $userAuthService)
     {
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'errors' => $validator->errors()
-            ], 422);
-        }
-
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
-
-        $token = $user->createToken('authToken')->accessToken;
-
-        return response()->json([
-            'success' => true,
-            'message' => 'User registered successfully!',
-            'user' => $user,
-            'token' => $token,
-        ], 201);
+        $this->userAuthService = $userAuthService;
     }
 
-  
-    public function login(Request $request)
+    public function register(RegisterUserRequest $request)
     {
-        $validator = Validator::make($request->all(), [
-            'email' => 'required|string|email',
-            'password' => 'required|string',
-        ]);
-    
-        if ($validator->fails()) {
+        try {
+            $result = $this->userAuthService->registerUser($request->validated());
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'تم تسجيل المستخدم بنجاح!',
+                'user' => $result['user'],
+                'token' => $result['token'],
+            ], 201);
+        } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'errors' => $validator->errors()
-            ], 422);
+                'message' => $e->getMessage()
+            ], 400);
         }
-    
-        $user = User::where('email', $request->email)->first();
-    
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Invalid credentials'
-            ], 401);
-        }
-    
-        $token = $user->createToken('authToken')->accessToken;
-    
-        return response()->json([
-            'success' => true,
-            'message' => 'Login successful',
-            'token' => $token,
-            'user' => $user
-        ]);
     }
 
+    public function login(LoginUserRequest $request)
+    {
+        try {
+            $result = $this->userAuthService->loginUser($request->validated());
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'تم تسجيل الدخول بنجاح',
+                'token' => $result['token'],
+                'user' => $result['user']
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], $e->getCode() ?: 401);
+        }
+    }
 
     public function logout(Request $request)
     {
-        $request->user()->token()->revoke();
-
+        $this->userAuthService->logoutUser($request->user());
+        
         return response()->json([
             'success' => true,
-            'message' => 'Successfully logged out'
+            'message' => 'تم تسجيل الخروج بنجاح'
         ]);
     }
 
-     public function refresh(Request $request)
+    public function refresh(Request $request)
     {
-        $user = $request->user();
-        $request->user()->token()->revoke();
-        $newToken = $user->createToken('authToken')->accessToken;
-
+        $newToken = $this->userAuthService->refreshUserToken($request->user());
+        
         return response()->json([
             'success' => true,
-            'message' => 'Token refreshed successfully',
+            'message' => 'تم تجديد التوكن بنجاح',
             'token' => $newToken
         ]);
     }
 
     public function user(Request $request)
     {
+        $user = $this->userAuthService->getAuthenticatedUser($request->user());
+        
         return response()->json([
             'success' => true,
-            'user' => $request->user()
+            'user' => $user
         ]);
     }
 }

@@ -37,15 +37,15 @@ return [
     
     'guards' => [
         'api' => [
-            'driver' => 'passport',
+            'driver' => 'jwt',
             'provider' => 'users',
         ],
         'admin-api' => [
-            'driver' => 'passport',
+            'driver' => 'jwt',
             'provider' => 'admins',
         ],
         'supervisor-api' => [
-            'driver' => 'passport',
+            'driver' => 'jwt',
             'provider' => 'supervisors',
         ],
     ],

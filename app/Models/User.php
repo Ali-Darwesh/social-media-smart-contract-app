@@ -2,17 +2,28 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable; 
-use Illuminate\Notifications\Notifiable;
-use Laravel\Passport\HasApiTokens;
-use Spatie\Permission\Traits\HasRoles;
 
-class User extends Authenticatable 
+use Illuminate\Foundation\Auth\User as Authenticatable; 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Notifications\Notifiable;
+use Spatie\Permission\Traits\HasRoles;
+use App\Traits\RoleAssignmentTrait;
+use Tymon\JWTAuth\Contracts\JWTSubject;
+
+class User extends Authenticatable implements JWTSubject
 {
-    use HasApiTokens, HasFactory, Notifiable  ,HasRoles;
+    use HasRoles, HasFactory, Notifiable  ;
 
     protected $guard_name = 'api';
+    public function getJWTIdentifier()
+    {
+        return $this->getKey();
+    }
+
+    public function getJWTCustomClaims()
+    {
+        return [];
+    }
     protected $fillable = [
         'name',
         'email',
@@ -44,7 +55,16 @@ class User extends Authenticatable
     {
         return $this->hasMany(Message::class, 'receiver_id');
     }
-
+    public function pendingSentRequests()
+    {
+        return $this->hasMany(Friendship::class, 'user_id')->where('status', 'pending');
+    }
+    
+    public function pendingReceivedRequests()
+    {
+        return $this->hasMany(Friendship::class, 'friend_id')->where('status', 'pending');
+    }
+    
     public function friends()
     {
         return $this->belongsToMany(
@@ -59,4 +79,5 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Contract::class, 'contract_user');
     }
+  
 }

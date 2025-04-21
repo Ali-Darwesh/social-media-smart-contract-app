@@ -3,112 +3,84 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Models\Admin;
+use App\Http\Requests\Auth\LoginAdminRequest;
+use App\Http\Requests\Auth\RegisterAdminRequest;
+use App\Services\Auth\AdminAuthService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
 
 class AdminAuthController extends Controller
 {
-    public function register(Request $request)
+    protected $adminAuthService;
+
+    public function __construct(AdminAuthService $adminAuthService)
     {
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:admins',
-            'password' => 'required|string|min:8',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'errors' => $validator->errors()
-            ], 422);
-        }
-
-        $admin = Admin::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
-
-        $token = $admin->createToken('authToken')->accessToken;
-
-        return response()->json([
-            'success' => true,
-            'message' => 'admin registered successfully!',
-            'admin' => $admin,
-            'token' => $token,
-        ], 201);
+        $this->adminAuthService = $adminAuthService;
     }
 
-    public function login(Request $request)
+    public function register(RegisterAdminRequest $request)
     {
-        $validator = Validator::make($request->all(), [
-            'email' => 'required|string|email',
-            'password' => 'required|string',
-        ]);
-    
-        if ($validator->fails()) {
+        try {
+            $result = $this->adminAuthService->registerAdmin($request->validated());
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'تم تسجيل المسؤول بنجاح!',
+                'admin' => $result['admin'],
+                'token' => $result['token'],
+            ], 201);
+        } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'errors' => $validator->errors()
-            ], 422);
+                'message' => $e->getMessage()
+            ], 400);
         }
-    
-        $admin = Admin::where('email', $request->email)->first();
-    
-        if (!$admin || !Hash::check($request->password, $admin->password)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Invalid credentials'
-            ], 401);
-        }
-    
-        $token = $admin->createToken('authToken')->accessToken;
-    
-        return response()->json([
-            'success' => true,
-            'message' => 'Login successful',
-            'token' => $token,
-            'admin' => $admin
-        ]);
     }
 
-    
+    public function login(LoginAdminRequest $request)
+    {
+        try {
+            $result = $this->adminAuthService->loginAdmin($request->validated());
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'تم تسجيل الدخول بنجاح',
+                'token' => $result['token'],
+                'admin' => $result['admin']
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], $e->getCode() ?: 401);
+        }
+    }
+
     public function logout(Request $request)
     {
-        $request->admin()->token()->revoke();
-
+        $this->adminAuthService->logoutAdmin($request->user());
+        
         return response()->json([
             'success' => true,
-            'message' => 'Successfully logged out'
+            'message' => 'تم تسجيل الخروج بنجاح'
         ]);
     }
 
     public function refresh(Request $request)
     {
-        $admin = $request->admin();
+        $newToken = $this->adminAuthService->refreshToken($request->user());
         
-        
-        $request->admin()->token()->revoke();
-        
-        
-        $newToken = $admin->createToken('authToken')->accessToken;
-
         return response()->json([
             'success' => true,
-            'message' => 'Token refreshed successfully',
+            'message' => 'تم تجديد التوكن بنجاح',
             'token' => $newToken
         ]);
     }
-
 
     public function admin(Request $request)
     {
         return response()->json([
             'success' => true,
-            'admin' => $request->admin()
+            'admin' => $request->user()
         ]);
     }
 }
