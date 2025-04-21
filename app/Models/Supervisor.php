@@ -2,20 +2,29 @@
 
 namespace App\Models;
 
+
 use Illuminate\Foundation\Auth\User as Authenticatable; 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Passport\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
-
-class Supervisor extends Authenticatable
+use App\Traits\RoleAssignmentTrait;
+use Tymon\JWTAuth\Contracts\JWTSubject;
+class Supervisor extends Authenticatable implements JWTSubject
 {
-    use HasApiTokens, HasFactory, Notifiable  ,HasRoles;
+    use HasFactory, Notifiable  ,HasRoles,RoleAssignmentTrait;
     protected $guard_name = 'supervisor-api';
     protected $fillable = [
         'name',
         'email',
         'password',
     ];
+    public function getJWTIdentifier()
+    {
+        return $this->getKey();
+    }
+
+    public function getJWTCustomClaims()
+    {
+        return [];
+    }
 }
