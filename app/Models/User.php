@@ -3,7 +3,7 @@
 namespace App\Models;
 
 
-use Illuminate\Foundation\Auth\User as Authenticatable; 
+use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
@@ -12,7 +12,7 @@ use Tymon\JWTAuth\Contracts\JWTSubject;
 
 class User extends Authenticatable implements JWTSubject
 {
-    use HasRoles, HasFactory, Notifiable  ;
+    use HasRoles, HasFactory, Notifiable;
 
     protected $guard_name = 'api';
     public function getJWTIdentifier()
@@ -27,6 +27,8 @@ class User extends Authenticatable implements JWTSubject
     protected $fillable = [
         'name',
         'email',
+        'age',
+        'is_banned',
         'password',
         'profile_image_id',
     ];
@@ -59,12 +61,12 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->hasMany(Friendship::class, 'user_id')->where('status', 'pending');
     }
-    
+
     public function pendingReceivedRequests()
     {
         return $this->hasMany(Friendship::class, 'friend_id')->where('status', 'pending');
     }
-    
+
     public function friends()
     {
         return $this->belongsToMany(
@@ -79,5 +81,4 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->belongsToMany(Contract::class, 'contract_user');
     }
-  
 }
