@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('title');
             $table->text('details');
             $table->string('status');
+            $table->json('signed_users')->nullable();
             $table->timestamps();
         });
     }

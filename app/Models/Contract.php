@@ -14,10 +14,16 @@ class Contract extends Model
         'details',
         'status',
     ];
+    protected $casts = [
+        'signed_users' => 'array',
+    ];
+    // Contract.php
+
+public function users()
+{
+    return $this->belongsToMany(User::class)->withTimestamps();
+}
 
 
-    public function users()
-    {
-        return $this->belongsToMany(User::class, 'contract_user');
-    }
+
 }
