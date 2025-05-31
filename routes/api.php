@@ -13,10 +13,28 @@ use App\Http\Controllers\MessageController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\FriendshipController;
 use Illuminate\Support\Facades\Broadcast;
-
+use App\Http\Controllers\ContractController;
 Broadcast::routes(['middleware' => ['auth:api']]);
 
 Route::middleware('auth:api')->group(function () {
+    Route::get('/contracts', [ContractController::class, 'index']);
+
+    // إنشاء عقد جديد
+    Route::post('/contracts', [ContractController::class, 'store']);
+
+    // عرض عقد معين
+    Route::get('/contracts/{id}', [ContractController::class, 'show']);
+
+    // توقيع عقد
+    Route::post('/contracts/{id}/sign', [ContractController::class, 'sign']);
+
+    // تغيير حالة العقد (مثلاً rejected / canceled / active)
+    Route::patch('/contracts/{id}/status', [ContractController::class, 'updateStatus']);
+
+    // حذف عقد
+    Route::delete('/contracts/{id}', [ContractController::class, 'destroy']);
+
+    
     Route::post('/friends/request/{id}', [FriendshipController::class, 'sendRequest']);
     Route::post('/friends/accept/{id}', [FriendshipController::class, 'acceptRequest']);
     Route::delete('/friends/decline/{id}', [FriendshipController::class, 'declineRequest']);
