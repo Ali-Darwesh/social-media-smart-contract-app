@@ -42,7 +42,11 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->hasMany(Post::class, 'author_id');
     }
-
+    public function postReactions()
+    {
+        return $this->hasMany(PostReaction::class);
+    }
+    
     public function comments()
     {
         return $this->hasMany(Comment::class, 'author_id');
@@ -52,6 +56,7 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->hasMany(Message::class, 'sender_id');
     }
+
 
     public function receivedMessages()
     {

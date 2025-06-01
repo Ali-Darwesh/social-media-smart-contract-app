@@ -82,6 +82,11 @@ Route::middleware('auth:api')->group(function () {
         Route::put('/update/{post}', [PostController::class, 'update'])->middleware('can:update own post');
         Route::delete('/destroy/{post}', [PostController::class, 'destroy'])->middleware('can:delete own post');
     });
+  
+        Route::post('/posts/{post}/like', [PostController::class, 'addLike']);
+        Route::post('/posts/{post}/dislike', [PostController::class, 'addDislike']);
+        Route::delete('/posts/{post}/reaction', [PostController::class, 'removeReaction']);
+
 
     // التعليقات
     Route::prefix('comments')->group(function () {

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\PostStoreRequest;
 use App\Http\Requests\PostUpdateRequest;
 use App\Models\Post;
+use App\Models\PostReaction;
 use App\Services\PostService;
 use Spatie\Permission\Exceptions\UnauthorizedException;
 
@@ -20,16 +21,23 @@ class PostController extends Controller
 
     public function index()
     {
-        // يمكن للجميع رؤية المنشورات
         $posts = Post::with(['author', 'images', 'videos', 'comments'])
+            ->withCount([
+                'likes as likes_count',
+                'dislikes as dislikes_count',
+            ])
+            ->with(['reactions' => function ($query) {
+                $query->where('user_id', auth()->id());
+            }])
             ->latest()
             ->paginate(10);
-
+    
         return response()->json([
             'success' => true,
             'data' => $posts
         ]);
     }
+    
 
     public function store(PostStoreRequest $request)
     {
@@ -92,6 +100,37 @@ class PostController extends Controller
             'message' => 'Post deleted successfully'
         ]);
     }
+
+    public function addLike(Post $post)
+{
+    PostReaction::updateOrCreate(
+        ['post_id' => $post->id, 'user_id' => auth()->id()],
+        ['type' => 'like']
+    );
+
+    return response()->json(['message' => 'Liked']);
+}
+
+public function addDislike(Post $post)
+{
+    PostReaction::updateOrCreate(
+        ['post_id' => $post->id, 'user_id' => auth()->id()],
+        ['type' => 'dislike']
+    );
+
+    return response()->json(['message' => 'Disliked']);
+}
+public function removeReaction(Post $post)
+{
+    $deleted = PostReaction::where('post_id', $post->id)
+        ->where('user_id', auth()->id())
+        ->delete();
+
+    return response()->json([
+        'message' => $deleted ? 'Reaction removed' : 'No reaction to remove',
+    ]);
+}
+
 /*
     public function adminIndex()
     {
