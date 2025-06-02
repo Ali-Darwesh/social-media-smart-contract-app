@@ -29,23 +29,14 @@ return [
     */
 
     'connections' => [
-
         'pusher' => [
-            'default' => env('BROADCAST_DRIVER', 'pusher'),
             'driver' => 'pusher',
             'key' => env('PUSHER_APP_KEY'),
             'secret' => env('PUSHER_APP_SECRET'),
             'app_id' => env('PUSHER_APP_ID'),
             'options' => [
-                'cluster' => env('PUSHER_APP_CLUSTER'),
-                'useTLS' => false,
-                'host' => env('PUSHER_HOST'),
-                'port' => env('PUSHER_PORT'),
-                'scheme' => env('PUSHER_SCHEME'),
-            ],
-        
-            'client_options' => [
-                // Guzzle client options: https://docs.guzzlephp.org/en/stable/request-options.html
+                'cluster' => env('PUSHER_APP_CLUSTER'), // أو حسب إعدادات حسابك
+                'useTLS' => true,
             ],
         ],
 

@@ -3,6 +3,7 @@
 namespace App\Services\Auth;
 
 use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Spatie\Permission\Models\Role;
@@ -15,6 +16,7 @@ class UserAuthService
             $user = User::create([
                 'name' => $data['name'],
                 'email' => $data['email'],
+                'age' => $data['age'],
                 'password' => Hash::make($data['password']),
             ]);
 
@@ -47,7 +49,7 @@ class UserAuthService
             }
 
             return [
-                'user' => auth('api')->user()->load('roles'),
+                'user' => Auth::guard('api')->user()->load('roles'),
                 'token' => $token
             ];
         } catch (\Exception $e) {
