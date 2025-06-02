@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Events\FriendRequestSent;
 use App\Models\Friendship;
 use App\Models\User;
+use App\Notifications\FriendRequestNotification;
 use Illuminate\Http\Request;
 
 class FriendshipController extends Controller
