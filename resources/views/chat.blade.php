@@ -96,11 +96,38 @@
     .listen('MessageSent', (e) => {
         if (e.sender_id === userId) return;
 
+        // أضفها للواجهة
         const div = document.createElement('div');
         div.className = 'message other';
         div.textContent = e.content;
         chatBox.appendChild(div);
         chatBox.scrollTop = chatBox.scrollHeight;
+
+        //  إشعار مثل واتساب
+        showNotification(e.sender_name, e.content);
     });
+    function showNotification(senderName, messageContent) {
+    const preview = messageContent.length > 30 ? messageContent.slice(0, 30) + "..." : messageContent;
+
+    const notification = document.createElement('div');
+    notification.style.position = 'fixed';
+    notification.style.bottom = '20px';
+    notification.style.right = '20px';
+    notification.style.background = '#333';
+    notification.style.color = '#fff';
+    notification.style.padding = '10px 15px';
+    notification.style.borderRadius = '10px';
+    notification.style.boxShadow = '0 0 10px rgba(0,0,0,0.3)';
+    notification.innerHTML = `<strong>${senderName}</strong><br>${preview}`;
+
+    document.body.appendChild(notification);
+  //  const audio = new Audio('/sounds/notify.mp3'); // حط ملف الصوت بمجلد public/sounds
+  //  audio.play();
+    // يشيل الإشعار بعد 5 ثواني
+    setTimeout(() => {
+        notification.remove();
+    }, 5000);
+}
+
 
 </script>

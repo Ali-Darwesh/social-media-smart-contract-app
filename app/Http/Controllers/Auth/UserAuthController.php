@@ -7,6 +7,7 @@ use App\Http\Requests\Auth\LoginUserRequest;
 use App\Http\Requests\Auth\RegisterUserRequest;
 use App\Services\Auth\UserAuthService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class UserAuthController extends Controller
 {
@@ -78,8 +79,11 @@ class UserAuthController extends Controller
 
     public function user(Request $request)
     {
-        $user = $this->userAuthService->getAuthenticatedUser($request->user());
-        
+        $id = $request->user()->id;
+
+        $user = Cache::remember("user_profile_{$id}", now()->addMinutes(15), function () use ($request) {
+            return $this->userAuthService->getAuthenticatedUser($request->user());
+        });
         return response()->json([
             'success' => true,
             'user' => $user

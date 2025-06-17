@@ -75,4 +75,15 @@ class UserAuthService
             throw new \Exception('فشل في تجديد التوكن', 500);
         }
     }
+    public function getAuthenticatedUser($user)
+{
+    return $user->only([
+        'id',
+        'name',
+        'email',
+        'created_at',
+        'updated_at',
+    ]);
+}
+
 }

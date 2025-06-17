@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\FriendRequestAccepted;
 use App\Events\FriendRequestSent;
 use App\Models\Friendship;
 use App\Models\User;
@@ -36,6 +37,7 @@ class FriendshipController extends Controller
             ->firstOrFail();
 
         $friendship->update(['status' => 'accepted']);
+        event(new FriendRequestAccepted(auth()->user(), $user_id));
 
         return response()->json(['message' => 'تم قبول طلب الصداقة.']);
     }

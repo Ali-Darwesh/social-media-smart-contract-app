@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 
 class UserController extends Controller
 {
@@ -24,7 +25,10 @@ class UserController extends Controller
 
     public function show($id)
     {
-        $user = User::findOrFail($id);
+        
+        $user = Cache::remember("user_profile_{$id}", now()->addMinutes(15), function () use ($id) {
+            return User::findOrFail($id);
+        });
         return response()->json([
             'success' => true,
             'user' => $user
@@ -33,6 +37,8 @@ class UserController extends Controller
 
     public function update(Request $request, $id)
     {
+        Cache::forget("user_profile_{$id}");
+
         $user = User::findOrFail($id);
 
         if (Auth::user() instanceof User && Auth::id() != $id) {
