@@ -17,6 +17,7 @@ class RegisterUserRequest extends FormRequest
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8',
+            'age' => 'nullable|int',
         ];
     }
 
@@ -27,7 +28,7 @@ class RegisterUserRequest extends FormRequest
             'email.required' => 'حقل البريد الإلكتروني مطلوب',
             'email.unique' => 'البريد الإلكتروني مستخدم بالفعل',
             'password.min' => 'كلمة المرور يجب أن تتكون من 8 أحرف على الأقل',
-            
+
         ];
     }
 }

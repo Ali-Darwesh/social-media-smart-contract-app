@@ -46,7 +46,7 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->hasMany(PostReaction::class);
     }
-    
+
     public function comments()
     {
         return $this->hasMany(Comment::class, 'author_id');
@@ -56,6 +56,7 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->hasMany(Message::class, 'sender_id');
     }
+
 
 
     public function receivedMessages()
@@ -81,6 +82,20 @@ class User extends Authenticatable implements JWTSubject
             'friend_id'
         )->withPivot('status')->withTimestamps();
     }
+
+    // public function allFriends()
+    // {
+    //     $friendsSent = $this->friends()->wherePivot('status', 'accepted')->get();
+
+    //     $friendsReceived = $this->belongsToMany(
+    //         User::class,
+    //         'friendships',
+    //         'friend_id', // reversed
+    //         'user_id'
+    //     )->wherePivot('status', 'accepted')->get();
+
+    //     return $friendsSent->merge($friendsReceived)->unique('id');
+    // }
 
     public function contracts()
     {
