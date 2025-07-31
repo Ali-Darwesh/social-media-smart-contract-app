@@ -2,13 +2,46 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use App\Models\User;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
+use Faker\Factory as Faker;
 
 class UserSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
-    public function run(): void {}
+    public function run(): void
+    {
+        $users = [
+            [
+                'name' => 'zein',
+                'email' => 'z@gmail.com',
+                'password' => Hash::make('123456'),
+                'age' => 20,
+            ],
+            [
+                'name' => 'ali',
+                'email' => 'a@gmail.com',
+                'password' => Hash::make('123456'),
+                'age' => 20,
+            ]
+        ];
+
+        foreach ($users as $user) {
+            User::create($user);
+        }
+        $faker = Faker::create();
+
+        foreach (range(1, 50) as $i) {
+            User::create([
+                'name' => $faker->name,
+                'email' => $faker->unique()->safeEmail,
+                'age' => $faker->numberBetween(18, 100),
+                'is_banned' => $faker->boolean(10), // 10% احتمالية يكون محظور
+                'email_verified_at' => $faker->optional()->dateTime,
+                'password' => Hash::make('password123'), // كلمة مرور افتراضية
+                'remember_token' => Str::random(10),
+            ]);
+        }
+    }
 }

@@ -14,7 +14,12 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             RolesAndPermissionsSeeder::class,
-            // يمكنك إضافة سيدرات أخرى هنا
+            AdminSeeder::class,
+            UserSeeder::class,
+            SupervisorSeeder::class,
+            PostSeeder::class,
+            PostReactionSeeder::class,
+           
         ]);
     }
 }

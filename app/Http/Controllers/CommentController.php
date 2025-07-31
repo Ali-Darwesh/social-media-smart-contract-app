@@ -8,7 +8,7 @@ use App\Models\Comment;
 use App\Services\CommentService;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
-
+use App\Notifications\CommentOnPostNotification; 
 class CommentController extends Controller
 {
     protected $commentService;
@@ -53,6 +53,12 @@ class CommentController extends Controller
         $comment = $this->commentService->createComment(
             $request->validated() + ['author_id' => auth()->id()]
         );
+        // send Comment On Post Notification
+    $postAuthor = $comment->post->author;
+
+    if ($postAuthor->id !== auth()->id()) {
+        $postAuthor->notify(new CommentOnPostNotification($comment));
+    }
 
         return response()->json([
             'success' => true,

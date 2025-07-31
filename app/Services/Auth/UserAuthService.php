@@ -4,6 +4,7 @@ namespace App\Services\Auth;
 
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Spatie\Permission\Models\Role;
@@ -21,15 +22,20 @@ class UserAuthService
             ]);
 
             // تعيين الدور
-            $role = Role::firstOrCreate([
-                'name' => 'user',
-                'guard_name' => 'api'
-            ]);
+            // Assign role
+            $role = Cache::rememberForever('user-role', function () {
+                return Role::firstOrCreate([
+                    'name' => 'user',
+                    'guard_name' => 'api',
+                ]);
+            });
 
             $user->assignRole($role);
 
             // إنشاء التوكن باستخدام JWT
             $token = auth('api')->login($user);
+            // ✅ Cache the token for reuse (e.g., 60 minutes)
+            Cache::put("user:{$user->id}:token", $token, now()->addMinutes(60));
 
             return [
                 'user' => $user->load('roles'),
@@ -47,9 +53,12 @@ class UserAuthService
             if (!$token = auth('api')->attempt($credentials)) {
                 throw new \Exception('بيانات الاعتماد غير صحيحة', 401);
             }
+            $user = Auth::guard('api')->user();
 
+            // ✅ Cache token for reuse
+            Cache::put("user:{$user->id}:token", $token, now()->addMinutes(60));
             return [
-                'user' => Auth::guard('api')->user()->load('roles'),
+                'user' =>  $user->load('roles'),
                 'token' => $token
             ];
         } catch (\Exception $e) {

@@ -11,13 +11,31 @@ return new class extends Migration
      */
     public function up(): void
     {
+        //     Schema::create('chats', function (Blueprint $table) {
+        //         $table->id();
+        //         $table->foreignId('user_one_id')->constrained('users')->onDelete('cascade')->index();
+        //         $table->foreignId('user_two_id')->constrained('users')->onDelete('cascade')->index();
+        //         $table->timestamps();
+
+        //         $table->unique(['user_one_id', 'user_two_id']);
+        //     });
+        // }
         Schema::create('chats', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_one_id')->constrained('users')->onDelete('cascade');
-            $table->foreignId('user_two_id')->constrained('users')->onDelete('cascade');
+
+            $table->unsignedBigInteger('user_one_id');
+            $table->unsignedBigInteger('user_two_id');
+
             $table->timestamps();
-    
+
             $table->unique(['user_one_id', 'user_two_id']);
+
+            // ✅ Explicit constraint names to avoid collision
+            $table->foreign('user_one_id', 'fk_chats_user_one')
+                ->references('id')->on('users')->onDelete('cascade');
+
+            $table->foreign('user_two_id', 'fk_chats_user_two')
+                ->references('id')->on('users')->onDelete('cascade');
         });
     }
 
