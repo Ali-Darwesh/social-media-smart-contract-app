@@ -1,6 +1,7 @@
 <?php
 
 namespace Database\Seeders;
+
 use Illuminate\Database\Seeder;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
@@ -16,11 +17,13 @@ class UserSeeder extends Seeder
                 'name' => 'zein',
                 'email' => 'z@gmail.com',
                 'password' => Hash::make('123456'),
+                'age' => 20,
             ],
             [
                 'name' => 'ali',
                 'email' => 'a@gmail.com',
                 'password' => Hash::make('123456'),
+                'age' => 20,
             ]
         ];
 
@@ -40,6 +43,5 @@ class UserSeeder extends Seeder
                 'remember_token' => Str::random(10),
             ]);
         }
-        
     }
 }

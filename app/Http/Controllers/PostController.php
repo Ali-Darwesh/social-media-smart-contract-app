@@ -6,6 +6,8 @@ use App\Http\Requests\PostStoreRequest;
 use App\Http\Requests\PostUpdateRequest;
 use App\Models\Post;
 use App\Models\PostReaction;
+use App\Notifications\likePostNotification;
+use App\Notifications\NewPostFromFriend;
 use App\Services\PostService;
 use Spatie\Permission\Exceptions\UnauthorizedException;
 
@@ -31,13 +33,13 @@ class PostController extends Controller
             }])
             ->latest()
             ->paginate(10);
-    
+
         return response()->json([
             'success' => true,
             'data' => $posts
         ]);
     }
-    
+
 
     public function store(PostStoreRequest $request)
     {
@@ -46,7 +48,11 @@ class PostController extends Controller
             $request->file('images', []),
             $request->file('videos', [])
         );
-
+        $author = auth()->user();
+        $friends = $author->friends->wherePivot('status', 'accepted')->get(); // returns Collection of User models
+        foreach ($friends as $friend) {
+            $friend->notify(new NewPostFromFriend($post, $author));
+        }
         return response()->json([
             'success' => true,
             'message' => 'Post created successfully',
@@ -102,36 +108,42 @@ class PostController extends Controller
     }
 
     public function addLike(Post $post)
-{
-    PostReaction::updateOrCreate(
-        ['post_id' => $post->id, 'user_id' => auth()->id()],
-        ['type' => 'like']
-    );
+    {
+        PostReaction::updateOrCreate(
+            ['post_id' => $post->id, 'user_id' => auth()->id()],
+            ['type' => 'like']
+        );
+        $liker = auth()->user();
+        $postAuthor = $post->author; // assuming Post has author() relationship
 
-    return response()->json(['message' => 'Liked']);
-}
+        // Prevent notifying self (optional)
+        if ($postAuthor->id !== $liker->id) {
+            $postAuthor->notify(new likePostNotification($post, $liker));
+        }
+        return response()->json(['message' => 'Liked']);
+    }
 
-public function addDislike(Post $post)
-{
-    PostReaction::updateOrCreate(
-        ['post_id' => $post->id, 'user_id' => auth()->id()],
-        ['type' => 'dislike']
-    );
+    public function addDislike(Post $post)
+    {
+        PostReaction::updateOrCreate(
+            ['post_id' => $post->id, 'user_id' => auth()->id()],
+            ['type' => 'dislike']
+        );
 
-    return response()->json(['message' => 'Disliked']);
-}
-public function removeReaction(Post $post)
-{
-    $deleted = PostReaction::where('post_id', $post->id)
-        ->where('user_id', auth()->id())
-        ->delete();
+        return response()->json(['message' => 'Disliked']);
+    }
+    public function removeReaction(Post $post)
+    {
+        $deleted = PostReaction::where('post_id', $post->id)
+            ->where('user_id', auth()->id())
+            ->delete();
 
-    return response()->json([
-        'message' => $deleted ? 'Reaction removed' : 'No reaction to remove',
-    ]);
-}
+        return response()->json([
+            'message' => $deleted ? 'Reaction removed' : 'No reaction to remove',
+        ]);
+    }
 
-/*
+    /*
     public function adminIndex()
     {
         if (!auth()->user()->hasRole('admin')) {
