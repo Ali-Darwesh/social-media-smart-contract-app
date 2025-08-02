@@ -13,7 +13,8 @@
         "laravel/tinker": "^2.8",
         "pusher/pusher-php-server": "^7.2",
         "spatie/laravel-permission": "^6.13",
-        "tymon/jwt-auth": "*"
+        "tymon/jwt-auth": "*",
+        "web3p/web3.php": "^0.1.6"
     },
     "require-dev": {
         "barryvdh/laravel-ide-helper": "^3.1",
