@@ -12,7 +12,26 @@
         "vite": "^5.0.0"
     },
     "dependencies": {
+        "@openzeppelin/contracts": "^5.4.0",
         "laravel-echo": "^2.0.2",
         "pusher-js": "^8.4.0"
-    }
+    },
+    "name": "social-media-smart-contract-app",
+    "version": "1.0.0",
+    "description": "https://github.com/Ali-Darwesh/social-media-smart-contract-app",
+    "main": "vite.config.js",
+    "directories": {
+        "test": "tests"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Ali-Darwesh/social-media-smart-contract-app.git"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/Ali-Darwesh/social-media-smart-contract-app/issues"
+    },
+    "homepage": "https://github.com/Ali-Darwesh/social-media-smart-contract-app#readme"
 }

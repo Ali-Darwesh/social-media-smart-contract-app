@@ -13,10 +13,12 @@ return new class extends Migration
     {
         Schema::create('contracts', function (Blueprint $table) {
             $table->id();
-            $table->string('title');
-            $table->text('details');
-            $table->string('status');
-            $table->json('signed_users')->nullable();
+            $table->string('address');               // Wallet address of client
+            $table->string('contract_address')->unique()->nullable();   // On-chain contract address
+            $table->string('client')->nullable();               // Wallet address of client
+            $table->string('serviceProvider')->nullable();     // Wallet address of service provider
+            $table->unsignedBigInteger('totalAmount')->nullable(); // Only whole USD, no decimals
+            $table->enum('status', ['Draft', 'PendingApproval', 'Active', 'Rejected', 'Completed'])->default('Draft');
             $table->timestamps();
         });
     }

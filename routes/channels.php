@@ -19,7 +19,9 @@ Broadcast::channel('chat.{userId}', function ($user, $userId) {
 Broadcast::channel('users.{id}', function ($user, $id) {
     return (int) $user->id === (int) $id;
 });
-
+Broadcast::channel('contract.{contractId}', function ($user, $contractId) {
+    return $user->contracts()->where('contracts.id', $contractId)->exists();
+});
 
 /*
 Broadcast::channel('chat.{chatId}', function ($user, $chatId) {

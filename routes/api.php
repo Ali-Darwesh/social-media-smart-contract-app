@@ -11,12 +11,14 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\ChatController;
+use App\Http\Controllers\Contract\ClauseController;
+use App\Http\Controllers\Contract\ContractController;
+use App\Http\Controllers\Contract\ContractTransactionsController;
 use App\Http\Controllers\FriendshipController;
 use Illuminate\Support\Facades\Broadcast;
-use App\Http\Controllers\ContractController;
 use Illuminate\Support\Facades\DB;
 
-Broadcast::routes(['middleware' => ['auth:api']]);
+// Broadcast::routes(['middleware' => ['auth:api']]);
 
 Route::middleware('auth:api')->group(function () {
     Route::get('/contracts', [ContractController::class, 'index']);
@@ -68,6 +70,7 @@ Route::prefix('auth')->group(function () {
         Route::post('/login', [SupervisorAuthController::class, 'login']);
     });
 });
+Route::get('posts', [PostController::class, 'index']);
 
 Route::middleware('auth:api')->group(function () {
     // المحادثات والرسائل
@@ -78,16 +81,15 @@ Route::middleware('auth:api')->group(function () {
 
     // المنشورات
     Route::prefix('posts')->group(function () {
-        Route::get('/', [PostController::class, 'index']);
         Route::get('/{id}', [PostController::class, 'show']);
         Route::post('/store', [PostController::class, 'store'])->middleware('can:create post');
         Route::put('/update/{post}', [PostController::class, 'update'])->middleware('can:update own post');
         Route::delete('/destroy/{post}', [PostController::class, 'destroy'])->middleware('can:delete own post');
     });
-  
-        Route::post('/posts/{post}/like', [PostController::class, 'addLike']);
-        Route::post('/posts/{post}/dislike', [PostController::class, 'addDislike']);
-        Route::delete('/posts/{post}/reaction', [PostController::class, 'removeReaction']);
+
+    Route::post('/posts/{post}/like', [PostController::class, 'addLike']);
+    Route::post('/posts/{post}/dislike', [PostController::class, 'addDislike']);
+    Route::delete('/posts/{post}/reaction', [PostController::class, 'removeReaction']);
 
 
     // التعليقات
@@ -150,12 +152,33 @@ Route::get('/noti',   function () {
 });
 
 
+/////////////////////////////////////
+
+////    S M A R T _ C O N T R A C T S
+
+/////////////////////////////////////
+Route::post('/approve_clause', [ContractTransactionsController::class, 'approveClause']);
+Route::post('/execute_clause', [ContractTransactionsController::class, 'executeClause']);
+Route::post('/reject_contract', [ContractTransactionsController::class, 'rejectContract']);
+Route::get('/get_clauses_count', [ContractTransactionsController::class, 'getClausesCount']);
+Route::get('/get_clauses', [ContractTransactionsController::class, 'getClause']);
+Route::get('/get_status', [ContractTransactionsController::class, 'getStatus']);
 
 
+//////
 
-
-
-
+Route::post('/{id}/deploy', [ContractTransactionsController::class, 'deploy']);
+Route::post('/add_clause/{id}', [ClauseController::class, 'create']);
+Route::get('/my_contracts', [ContractController::class, 'myContracts']);
+Route::post('/create_contract', [ContractController::class, 'store']);
+Route::post('/{contractId}/send_invite', [ContractController::class, 'sendInvite']);
+Route::get('/get_invites', [ContractController::class, 'getInvites']);
+Route::post('/{contractId}/respond_invite', [ContractController::class, 'respondInvite']);
+Route::get('/{id}/get_clauses_DB', [ClauseController::class, 'getClauses']);
+Route::get('/{id}/get_approved_clauses', [ClauseController::class, 'getApprovedClauses']);
+Route::post('/update_clause/{clause}', [ClauseController::class, 'update']);
+Route::post('/accepte_clause/{id}', [ClauseController::class, 'accepteClause']);
+Route::post('/delete/{id}', [ClauseController::class, 'destroy']);
 
 
 

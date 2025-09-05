@@ -1,9 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-contract ServiceAgreement {
-
-    enum Status { Draft, PendingApproval, Active, Rejected, Completed }
+contract ServiceAgreement is Ownable {
+    enum Status {
+        Draft,
+        PendingApproval,
+        Active,
+        Rejected,
+        Completed
+    }
 
     struct Clause {
         string text;
@@ -14,8 +19,8 @@ contract ServiceAgreement {
         uint256 amount; // المبلغ المخصص للبند
     }
 
-    address public client;           // Party A
-    address public serviceProvider;  // Party B
+    address public client; // Party A
+    address public serviceProvider; // Party B
 
     Clause[] public clauses;
     Status public status;
@@ -27,7 +32,10 @@ contract ServiceAgreement {
     uint256 public completedAt;
 
     modifier onlyParticipants() {
-        require(msg.sender == client || msg.sender == serviceProvider, "Not authorized");
+        require(
+            msg.sender == client || msg.sender == serviceProvider,
+            "Not authorized"
+        );
         _;
     }
 
@@ -41,18 +49,43 @@ contract ServiceAgreement {
         _;
     }
 
-    constructor(address _serviceProvider, uint256 _totalAmount) payable {
-        require(msg.sender != _serviceProvider, "Parties must differ");
-        require(msg.value == _totalAmount, "Must fund total amount");
+    event DebugDeploy(
+        address deployer,
+        address client,
+        address serviceProvider,
+        uint256 totalEth,
+        uint256 msgValue
+    );
 
-        client = msg.sender;
+    constructor(
+        address _client,
+        address _serviceProvider,
+        uint256 _totalAmountInEth
+    ) payable Ownable(_client) {
+        emit DebugDeploy(
+            msg.sender,
+            _client,
+            _serviceProvider,
+            _totalAmountInEth,
+            msg.value
+        );
+
+        require(_client != _serviceProvider, "Parties must differ");
+
+        uint256 _totalAmountInWei = _totalAmountInEth * 1 ether;
+        require(msg.value == _totalAmountInWei, "Must fund total amount");
+
+        client = _client; // now passed from backend
         serviceProvider = _serviceProvider;
-        totalAmount = _totalAmount;
+        totalAmount = _totalAmountInWei;
         status = Status.Draft;
         createdAt = block.timestamp;
     }
 
-    function addClause(string memory _text, uint256 _amount) external onlyParticipants {
+    function addClause(
+        string memory _text,
+        uint256 _amount
+    ) external onlyParticipants {
         require(_amount > 0, "Clause amount must be > 0");
 
         uint256 allocated = 0;
@@ -62,21 +95,26 @@ contract ServiceAgreement {
 
         require(allocated + _amount <= totalAmount, "Exceeds total budget");
 
-        clauses.push(Clause({
-            text: _text,
-            proposer: msg.sender,
-            approvedByA: msg.sender == client,
-            approvedByB: msg.sender == serviceProvider,
-            executed: false,
-            amount: _amount
-        }));
+        clauses.push(
+            Clause({
+                text: _text,
+                proposer: msg.sender,
+                approvedByA: msg.sender == client,
+                approvedByB: msg.sender == serviceProvider,
+                executed: false,
+                amount: _amount
+            })
+        );
 
         status = Status.Draft;
     }
 
     function deleteClause(uint index) external onlyParticipants {
         require(index < clauses.length, "Invalid index");
-        require(clauses[index].proposer == msg.sender, "Only proposer can delete");
+        require(
+            clauses[index].proposer == msg.sender,
+            "Only proposer can delete"
+        );
 
         // Remove clause by replacing it with last and popping
         clauses[index] = clauses[clauses.length - 1];
@@ -85,7 +123,11 @@ contract ServiceAgreement {
         status = Status.Draft;
     }
 
-    function editClause(uint index, string memory newText, uint256 newAmount) external onlyParticipants {
+    function editClause(
+        uint index,
+        string memory newText,
+        uint256 newAmount
+    ) external onlyParticipants {
         require(index < clauses.length, "Invalid clause index");
 
         Clause storage clause = clauses[index];
@@ -126,7 +168,10 @@ contract ServiceAgreement {
 
         Clause storage clause = clauses[index];
         require(status == Status.Active, "Contract not active");
-        require(clause.approvedByA && clause.approvedByB, "Clause not fully approved");
+        require(
+            clause.approvedByA && clause.approvedByB,
+            "Clause not fully approved"
+        );
         require(!clause.executed, "Already executed");
 
         clause.executed = true;
@@ -139,7 +184,10 @@ contract ServiceAgreement {
     }
 
     function rejectContract() external onlyParticipants {
-        require(status != Status.Rejected && status != Status.Completed, "Cannot reject now");
+        require(
+            status != Status.Rejected && status != Status.Completed,
+            "Cannot reject now"
+        );
         status = Status.Rejected;
         _refundClient();
     }
@@ -188,16 +236,29 @@ contract ServiceAgreement {
         }
     }
 
-    function getClause(uint index) external view returns (
-        string memory text,
-        address proposer,
-        bool approvedByA,
-        bool approvedByB,
-        bool executed,
-        uint256 amount
-    ) {
+    function getClause(
+        uint index
+    )
+        external
+        view
+        returns (
+            string memory text,
+            address proposer,
+            bool approvedByA,
+            bool approvedByB,
+            bool executed,
+            uint256 amount
+        )
+    {
         Clause storage c = clauses[index];
-        return (c.text, c.proposer, c.approvedByA, c.approvedByB, c.executed, c.amount);
+        return (
+            c.text,
+            c.proposer,
+            c.approvedByA,
+            c.approvedByB,
+            c.executed,
+            c.amount
+        );
     }
 
     function getClausesCount() external view returns (uint) {

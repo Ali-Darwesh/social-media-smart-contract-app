@@ -83,22 +83,11 @@ class User extends Authenticatable implements JWTSubject
         )->withPivot('status')->withTimestamps();
     }
 
-    // public function allFriends()
-    // {
-    //     $friendsSent = $this->friends()->wherePivot('status', 'accepted')->get();
-
-    //     $friendsReceived = $this->belongsToMany(
-    //         User::class,
-    //         'friendships',
-    //         'friend_id', // reversed
-    //         'user_id'
-    //     )->wherePivot('status', 'accepted')->get();
-
-    //     return $friendsSent->merge($friendsReceived)->unique('id');
-    // }
 
     public function contracts()
     {
-        return $this->belongsToMany(Contract::class, 'contract_user');
+        return $this->belongsToMany(Contract::class, 'contract_user')
+            ->withPivot(['role', 'user_address', 'status'])
+            ->withTimestamps();
     }
 }
