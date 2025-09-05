@@ -12,14 +12,17 @@ class RegisterUserRequest extends FormRequest
     }
 
     public function rules(): array
-    {
-        return [
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8',
-            'age' => 'nullable|int',
-        ];
-    }
+{
+    return [
+        'name' => 'required|string|max:255',
+        'email' => 'required|string|email|max:255|unique:users',
+        'age' => 'required|integer|min:18|max:100', 
+        'gender'=>'required',
+        'password' => 'required|string|min:8',
+        'profile_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // صورة اختيارية
+    ];
+}
+
 
     public function messages(): array
     {
@@ -27,6 +30,7 @@ class RegisterUserRequest extends FormRequest
             'name.required' => 'حقل الاسم مطلوب',
             'email.required' => 'حقل البريد الإلكتروني مطلوب',
             'email.unique' => 'البريد الإلكتروني مستخدم بالفعل',
+            'gender.required'=>'يجب تحديد الجنس',
             'password.min' => 'كلمة المرور يجب أن تتكون من 8 أحرف على الأقل',
 
         ];

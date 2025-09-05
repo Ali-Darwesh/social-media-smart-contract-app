@@ -2,6 +2,7 @@
 
 namespace App\Services\Auth;
 
+use App\Models\Post;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -18,27 +19,36 @@ class UserAuthService
                 'name' => $data['name'],
                 'email' => $data['email'],
                 'age' => $data['age'],
+                'gender'=>$data['gender'],
                 'password' => Hash::make($data['password']),
             ]);
-
-            // تعيين الدور
-            // Assign role
-            $role = Cache::rememberForever('user-role', function () {
-                return Role::firstOrCreate([
-                    'name' => 'user',
-                    'guard_name' => 'api',
+    
+            // إذا فيه صورة مرفوعة نخزنها
+            if (isset($data['profile_image'])) {
+                $path = $data['profile_image']->store('profile_images', 'public');
+                $user->profileImage()->create([
+                    'url' => $path
                 ]);
-            });
-
+            } else {
+                // صورة افتراضية
+                $user->profileImage()->create([
+                    'url' => 'public/default/n.png' // احفظ صورة default في public/storage/default
+                ]);
+            }
+    
+            // تعيين الدور
+            $role = Role::firstOrCreate([
+                'name' => 'user',
+                'guard_name' => 'api'
+            ]);
+    
             $user->assignRole($role);
-
-            // إنشاء التوكن باستخدام JWT
+    
+            // إنشاء التوكن
             $token = auth('api')->login($user);
-            // ✅ Cache the token for reuse (e.g., 60 minutes)
-            Cache::put("user:{$user->id}:token", $token, now()->addMinutes(60));
-
+    
             return [
-                'user' => $user->load('roles'),
+                'user' => $user->load('roles', 'profileImage'),
                 'token' => $token
             ];
         } catch (\Exception $e) {
@@ -46,6 +56,7 @@ class UserAuthService
             throw new \Exception('فشل عملية التسجيل', 500);
         }
     }
+    
 
     public function loginUser(array $credentials): array
     {
@@ -53,19 +64,38 @@ class UserAuthService
             if (!$token = auth('api')->attempt($credentials)) {
                 throw new \Exception('بيانات الاعتماد غير صحيحة', 401);
             }
-            $user = Auth::guard('api')->user();
-
-            // ✅ Cache token for reuse
-            Cache::put("user:{$user->id}:token", $token, now()->addMinutes(60));
+    
+            $user = auth('api')->user()->load('roles', 'profileImage');
+    
+            // جلب البوستات مع بيانات صاحب البوست وصورته
+            $posts = Post::with([
+                    'author.profileImage', // صورة صاحب البوست
+                    'images',
+                    'videos',
+                    'comments'
+                ])
+                ->withCount([
+                    'likes as likes_count',
+                    'dislikes as dislikes_count',
+                ])
+                ->with(['reactions' => function ($query) {
+                    $query->where('user_id', auth()->id());
+                }])
+                ->latest()
+                ->take(10)
+                ->get();
+    
             return [
-                'user' =>  $user->load('roles'),
-                'token' => $token
+                'user'  => $user,
+                'token' => $token,
+                'posts' => $posts
             ];
         } catch (\Exception $e) {
-            Log::error('Login failed: ' . $e->getMessage());
+            \Log::error('Login failed: ' . $e->getMessage());
             throw $e;
         }
     }
+    
 
     public function logoutUser(): void
     {

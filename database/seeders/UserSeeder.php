@@ -16,12 +16,16 @@ class UserSeeder extends Seeder
             [
                 'name' => 'zein',
                 'email' => 'z@gmail.com',
+                'age' => '25',
+                'gender' => 'male',
                 'password' => Hash::make('123456'),
                 'age' => 20,
             ],
             [
                 'name' => 'ali',
                 'email' => 'a@gmail.com',
+                'age' => '25',
+                'gender' => 'male',
                 'password' => Hash::make('123456'),
                 'age' => 20,
             ]
@@ -30,6 +34,7 @@ class UserSeeder extends Seeder
         foreach ($users as $user) {
             User::create($user);
         }
+
         $faker = Faker::create();
 
         foreach (range(1, 50) as $i) {
@@ -37,6 +42,7 @@ class UserSeeder extends Seeder
                 'name' => $faker->name,
                 'email' => $faker->unique()->safeEmail,
                 'age' => $faker->numberBetween(18, 100),
+                'gender' => $faker->randomElement(['male', 'female']),
                 'is_banned' => $faker->boolean(10), // 10% احتمالية يكون محظور
                 'email_verified_at' => $faker->optional()->dateTime,
                 'password' => Hash::make('password123'), // كلمة مرور افتراضية

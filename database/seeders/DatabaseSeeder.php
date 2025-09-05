@@ -17,8 +17,8 @@ class DatabaseSeeder extends Seeder
             AdminSeeder::class,
             UserSeeder::class,
             SupervisorSeeder::class,
-            PostSeeder::class,
-            PostReactionSeeder::class,
+           // PostSeeder::class,
+           // PostReactionSeeder::class,
            
         ]);
     }

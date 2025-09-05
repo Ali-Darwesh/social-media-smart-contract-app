@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->integer('age')->min(18)->max(100);
             $table->boolean('is_banned')->default(false);
+            $table->enum('gender', ['male', 'female'])->default('male');
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->rememberToken();

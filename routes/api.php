@@ -7,6 +7,7 @@ use App\Http\Controllers\Auth\UserAuthController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\SupervisorController;
+use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\MessageController;
@@ -21,6 +22,10 @@ use Illuminate\Support\Facades\DB;
 // Broadcast::routes(['middleware' => ['auth:api']]);
 
 Route::middleware('auth:api')->group(function () {
+
+
+    Route::get('/user/profile/{id?}', [UserController::class, 'profile']);
+
     Route::get('/contracts', [ContractController::class, 'index']);
 
     // إنشاء عقد جديد
@@ -38,7 +43,8 @@ Route::middleware('auth:api')->group(function () {
     // حذف عقد
     Route::delete('/contracts/{id}', [ContractController::class, 'destroy']);
 
-
+    Route::get('/users/search', [UserController::class, 'search']);
+    Route::get('/users/all', [UserController::class, 'allUsers']);
     Route::post('/friends/request/{id}', [FriendshipController::class, 'sendRequest']);
     Route::post('/friends/accept/{id}', [FriendshipController::class, 'acceptRequest']);
     Route::delete('/friends/decline/{id}', [FriendshipController::class, 'declineRequest']);
@@ -54,7 +60,7 @@ Route::prefix('auth')->group(function () {
     // User authentication routes
     Route::post('/register', [UserAuthController::class, 'register']);
     Route::post('/login', [UserAuthController::class, 'login']);
-
+    Route::post('/logout', [UserAuthController::class, 'logout']);
     // Admin authentication routes
     Route::prefix('admin')->group(function () {
         Route::post('/register', [AdminAuthController::class, 'register']);
@@ -70,19 +76,26 @@ Route::prefix('auth')->group(function () {
         Route::post('/login', [SupervisorAuthController::class, 'login']);
     });
 });
-Route::get('posts', [PostController::class, 'index']);
-
+//Route::post('/posts/store', [PostController::class, 'store']);
 Route::middleware('auth:api')->group(function () {
+
+
+
     // المحادثات والرسائل
     Route::get('/chats', [ChatController::class, 'index']);
+    Route::get('/chats/get-or-create', [ChatController::class, 'getOrCreate']);
     Route::get('/chats/{id}', [ChatController::class, 'show']);
     Route::get('/messages/{chat_id}', [MessageController::class, 'index']);
     Route::post('/messages', [MessageController::class, 'store']);
 
+
+
     // المنشورات
     Route::prefix('posts')->group(function () {
+        Route::post('/store', [PostController::class, 'store']);
+        Route::get('/', [PostController::class, 'index']);
         Route::get('/{id}', [PostController::class, 'show']);
-        Route::post('/store', [PostController::class, 'store'])->middleware('can:create post');
+        //->middleware('can:create post')
         Route::put('/update/{post}', [PostController::class, 'update'])->middleware('can:update own post');
         Route::delete('/destroy/{post}', [PostController::class, 'destroy'])->middleware('can:delete own post');
     });
@@ -91,9 +104,14 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/posts/{post}/dislike', [PostController::class, 'addDislike']);
     Route::delete('/posts/{post}/reaction', [PostController::class, 'removeReaction']);
 
+    Route::post('/posts/{post}/like', [PostController::class, 'addLike']);
+    Route::post('/posts/{post}/dislike', [PostController::class, 'addDislike']);
+    Route::delete('/posts/{post}/reaction', [PostController::class, 'removeReaction']);
+
 
     // التعليقات
     Route::prefix('comments')->group(function () {
+        Route::post('/index', [CommentController::class, 'index']);
         Route::post('/store', [CommentController::class, 'store'])->middleware('can:create comment');
         Route::put('/update/{comment}', [CommentController::class, 'update']);
         Route::delete('/destroy/{comment}', [CommentController::class, 'destroy'])->middleware('can:delete own comment');
