@@ -19,6 +19,7 @@ class UserSeeder extends Seeder
                 'age' => '25',
                 'gender' => 'male',
                 'password' => Hash::make('123456'),
+                'age' => 20,
             ],
             [
                 'name' => 'ali',
@@ -26,6 +27,7 @@ class UserSeeder extends Seeder
                 'age' => '25',
                 'gender' => 'male',
                 'password' => Hash::make('123456'),
+                'age' => 20,
             ]
         ];
 

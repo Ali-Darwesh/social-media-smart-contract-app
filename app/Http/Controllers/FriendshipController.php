@@ -6,6 +6,7 @@ use App\Events\FriendRequestAccepted;
 use App\Events\FriendRequestSent;
 use App\Models\Friendship;
 use App\Models\User;
+use App\Notifications\FriendRequestNotification;
 use Illuminate\Http\Request;
 
 class FriendshipController extends Controller
@@ -82,10 +83,10 @@ class FriendshipController extends Controller
     public function unfriend($friend_id)
     {
         $deleted = Friendship::where(function ($q) use ($friend_id) {
-                $q->where('user_id', auth()->id())->where('friend_id', $friend_id);
-            })->orWhere(function ($q) use ($friend_id) {
-                $q->where('user_id', $friend_id)->where('friend_id', auth()->id());
-            })->where('status', 'accepted')->delete();
+            $q->where('user_id', auth()->id())->where('friend_id', $friend_id);
+        })->orWhere(function ($q) use ($friend_id) {
+            $q->where('user_id', $friend_id)->where('friend_id', auth()->id());
+        })->where('status', 'accepted')->delete();
 
         return response()->json(['message' => $deleted ? 'تم حذف الصديق.' : 'الصداقة غير موجودة.']);
     }

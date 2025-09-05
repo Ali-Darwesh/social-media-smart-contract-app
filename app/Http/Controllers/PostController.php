@@ -6,6 +6,8 @@ use App\Http\Requests\PostStoreRequest;
 use App\Http\Requests\PostUpdateRequest;
 use App\Models\Post;
 use App\Models\PostReaction;
+use App\Notifications\likePostNotification;
+use App\Notifications\NewPostFromFriend;
 use App\Services\PostService;
 use Spatie\Permission\Exceptions\UnauthorizedException;
 
@@ -31,13 +33,13 @@ class PostController extends Controller
             }])
             ->latest()
             ->paginate(10);
-    
+
         return response()->json([
             'success' => true,
             'data' => $posts
         ]);
     }
-    
+
 
     public function store(PostStoreRequest $request)
     {
@@ -46,7 +48,11 @@ class PostController extends Controller
             $request->file('images', []),
             $request->file('videos', [])
         );
-
+        $author = auth()->user();
+        $friends = $author->friends->wherePivot('status', 'accepted')->get(); // returns Collection of User models
+        foreach ($friends as $friend) {
+            $friend->notify(new NewPostFromFriend($post, $author));
+        }
         return response()->json([
             'success' => true,
             'message' => 'Post created successfully',
@@ -155,7 +161,7 @@ class PostController extends Controller
     }
     
 
-/*
+    /*
     public function adminIndex()
     {
         if (!auth()->user()->hasRole('admin')) {

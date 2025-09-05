@@ -15,6 +15,8 @@ use App\Http\Controllers\ChatController;
 use App\Http\Controllers\FriendshipController;
 use Illuminate\Support\Facades\Broadcast;
 use App\Http\Controllers\ContractController;
+use Illuminate\Support\Facades\DB;
+
 Broadcast::routes(['middleware' => ['auth:api']]);
 
 Route::middleware('auth:api')->group(function () {
@@ -58,17 +60,17 @@ Route::prefix('auth')->group(function () {
     Route::post('/login', [UserAuthController::class, 'login']);
     Route::post('/logout', [UserAuthController::class, 'logout']);
     // Admin authentication routes
- Route::prefix('admin')->group(function () {
+    Route::prefix('admin')->group(function () {
         Route::post('/register', [AdminAuthController::class, 'register']);
         Route::post('/login', [AdminAuthController::class, 'login']);
 
     });
-    
+
     // Supervisor authentication routes
-    
-Route::prefix('supervisor')->group(function () {
+
+    Route::prefix('supervisor')->group(function () {
         Route::middleware(['auth:admin-api', 'can:create supervisor account'])->group(function () {
-        Route::post('/register', [SupervisorAuthController::class, 'register']);
+            Route::post('/register', [SupervisorAuthController::class, 'register']);
         });
         Route::post('/login', [SupervisorAuthController::class, 'login']);
     });
@@ -151,6 +153,16 @@ Route::prefix('admin')->middleware(['auth:admin-api'])->group(function () {
     Route::delete('/admin/destroy/{id}', [AdminController::class, 'destroy'])->middleware('can:delete supervisor account');
 });
 
+Route::get('/noti',   function () {
+    // يمكن للجميع رؤية المنشورات
+    $not = DB::table('notifications')->get();
+
+
+    return response()->json([
+        'success' => true,
+        'data' => $not
+    ]);
+});
 
 
 

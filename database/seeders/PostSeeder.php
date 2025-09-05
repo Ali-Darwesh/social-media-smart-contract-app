@@ -48,8 +48,8 @@ class PostSeeder extends Seeder
             // ربط تعليقات
             foreach (range(1, rand(2, 5)) as $c) {
                 $post->comments()->create([
-                    'user_id' => $faker->randomElement($userIds),
-                    'body' => $faker->sentence(12),
+                    'author_id' => $faker->randomElement($userIds),
+                    'content' => $faker->sentence(12),
                 ]);
             }
         }

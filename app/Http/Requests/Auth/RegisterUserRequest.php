@@ -32,7 +32,7 @@ class RegisterUserRequest extends FormRequest
             'email.unique' => 'البريد الإلكتروني مستخدم بالفعل',
             'gender.required'=>'يجب تحديد الجنس',
             'password.min' => 'كلمة المرور يجب أن تتكون من 8 أحرف على الأقل',
-            
+
         ];
     }
 }
