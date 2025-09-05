@@ -13,21 +13,35 @@ class FriendshipController extends Controller
     // إرسال طلب صداقة
     public function sendRequest($friend_id)
     {
-        if (Friendship::where('user_id', auth()->id())->where('friend_id', $friend_id)->exists()) {
+        $userId = auth()->id();
+    
+        // لا تبعت لنفسك
+        if ($userId == $friend_id) {
+            return response()->json(['message' => 'لا يمكنك إرسال طلب لنفسك.'], 400);
+        }
+    
+        // تحقق من وجود صداقة أو طلب سابق بأي اتجاه
+        $exists = Friendship::where(function ($q) use ($userId, $friend_id) {
+            $q->where('user_id', $userId)->where('friend_id', $friend_id);
+        })->orWhere(function ($q) use ($userId, $friend_id) {
+            $q->where('user_id', $friend_id)->where('friend_id', $userId);
+        })->exists();
+    
+        if ($exists) {
             return response()->json(['message' => 'تم إرسال الطلب مسبقاً أو أنت بالفعل صديق.'], 400);
         }
-
+    
         Friendship::create([
-            'user_id' => auth()->id(),
+            'user_id' => $userId,
             'friend_id' => $friend_id,
             'status' => 'pending',
         ]);
-
+    
         event(new FriendRequestSent(auth()->user()));
-
+    
         return response()->json(['message' => 'تم إرسال طلب الصداقة.']);
     }
-
+    
     // قبول طلب صداقة
     public function acceptRequest($user_id)
     {
@@ -77,12 +91,32 @@ class FriendshipController extends Controller
     }
 
     // عرض قائمة الأصدقاء
-    public function friends()
+    public function friends(Request $request)
     {
-        $friends = Friendship::where(function ($q) {
-                $q->where('user_id', auth()->id())
-                  ->orWhere('friend_id', auth()->id());
-            })->where('status', 'accepted')->get();
+        $user = $request->user();
+
+        // أصدقاء الطرفين (سواء أنا user_id أو friend_id)
+        $friends = Friendship::where(function ($q) use ($user) {
+                $q->where('user_id', $user->id)
+                  ->orWhere('friend_id', $user->id);
+            })
+            ->where('status', 'accepted')
+            ->with(['user.profileImage', 'friend.profileImage'])
+            ->get()
+            ->map(function ($friendship) use ($user) {
+                $friend = $friendship->user_id == $user->id
+                    ? $friendship->friend
+                    : $friendship->user;
+
+                return [
+                    "id" => $friend->id,
+                    "name" => $friend->name,
+                    "email" => $friend->email,
+                    "profile_image" => $friend->profileImage
+                        ? ["url" => $friend->profileImage->url]
+                        : null,
+                ];
+            });
 
         return response()->json($friends);
     }

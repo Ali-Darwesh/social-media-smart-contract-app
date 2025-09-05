@@ -31,8 +31,11 @@ class User extends Authenticatable implements JWTSubject
         'is_banned',
         'password',
         'profile_image_id',
+        'id',
     ];
-
+    protected $casts = [
+        'age' => 'integer',
+    ];
     public function profileImage()
     {
         return $this->morphOne(Image::class, 'imageable');
@@ -81,6 +84,27 @@ class User extends Authenticatable implements JWTSubject
             'friend_id'
         )->withPivot('status')->withTimestamps();
     }
+    public function friendsOfMine()
+    {
+        return $this->belongsToMany(User::class, 'friendships', 'user_id', 'friend_id')
+            ->withPivot('status')
+            ->withTimestamps();
+    }
+
+    // ✅ جلب الأصدقاء (friend_id → user_id)
+    public function friendOf()
+    {
+        return $this->belongsToMany(User::class, 'friendships', 'friend_id', 'user_id')
+            ->withPivot('status')
+            ->withTimestamps();
+    }
+
+    // ✅ العلاقة المدمجة: ترجع كل الأصدقاء
+    public function allFriends()
+    {
+        return $this->friendsOfMine->merge($this->friendOf);
+    }
+
 
     public function contracts()
     {

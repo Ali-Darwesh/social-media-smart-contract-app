@@ -16,7 +16,7 @@ class PostController extends Controller
     public function __construct(PostService $postService)
     {
         $this->postService = $postService;
-        $this->middleware('auth:api,admin-api');
+      //  $this->middleware('auth:api,admin-api');
     }
 
     public function index()
@@ -42,7 +42,7 @@ class PostController extends Controller
     public function store(PostStoreRequest $request)
     {
         $post = $this->postService->createPost(
-            $request->only(['content', 'details']) + ['author_id' => auth()->id()],
+            $request->only(['content', 'details']) + ['author_id' =>auth()->id()],// 
             $request->file('images', []),
             $request->file('videos', [])
         );
@@ -102,34 +102,58 @@ class PostController extends Controller
     }
 
     public function addLike(Post $post)
-{
-    PostReaction::updateOrCreate(
-        ['post_id' => $post->id, 'user_id' => auth()->id()],
-        ['type' => 'like']
-    );
-
-    return response()->json(['message' => 'Liked']);
-}
-
-public function addDislike(Post $post)
-{
-    PostReaction::updateOrCreate(
-        ['post_id' => $post->id, 'user_id' => auth()->id()],
-        ['type' => 'dislike']
-    );
-
-    return response()->json(['message' => 'Disliked']);
-}
-public function removeReaction(Post $post)
-{
-    $deleted = PostReaction::where('post_id', $post->id)
-        ->where('user_id', auth()->id())
-        ->delete();
-
-    return response()->json([
-        'message' => $deleted ? 'Reaction removed' : 'No reaction to remove',
-    ]);
-}
+    {
+        // إذا التفاعل الحالي "لايك" شيله
+        $existing = PostReaction::where('post_id', $post->id)
+            ->where('user_id', auth()->id())
+            ->first();
+    
+        if ($existing && $existing->type === 'like') {
+            $existing->delete();
+            return response()->json(['message' => 'Like removed']);
+        }
+    
+        // غير هيك حط لايك
+        PostReaction::updateOrCreate(
+            ['post_id' => $post->id, 'user_id' => auth()->id()],
+            ['type' => 'like']
+        );
+    
+        return response()->json(['message' => 'Liked']);
+    }
+    
+    public function addDislike(Post $post)
+    {
+        // إذا التفاعل الحالي "دسلايك" شيله
+        $existing = PostReaction::where('post_id', $post->id)
+            ->where('user_id', auth()->id())
+            ->first();
+    
+        if ($existing && $existing->type === 'dislike') {
+            $existing->delete();
+            return response()->json(['message' => 'Dislike removed']);
+        }
+    
+        // غير هيك حط دسلايك
+        PostReaction::updateOrCreate(
+            ['post_id' => $post->id, 'user_id' => auth()->id()],
+            ['type' => 'dislike']
+        );
+    
+        return response()->json(['message' => 'Disliked']);
+    }
+    
+    public function removeReaction(Post $post)
+    {
+        $deleted = PostReaction::where('post_id', $post->id)
+            ->where('user_id', auth()->id())
+            ->delete();
+    
+        return response()->json([
+            'message' => $deleted ? 'Reaction removed' : 'No reaction to remove',
+        ]);
+    }
+    
 
 /*
     public function adminIndex()

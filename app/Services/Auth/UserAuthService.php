@@ -2,6 +2,7 @@
 
 namespace App\Services\Auth;
 
+use App\Models\Post;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
@@ -15,22 +16,37 @@ class UserAuthService
             $user = User::create([
                 'name' => $data['name'],
                 'email' => $data['email'],
+                'age' => $data['age'],
+                'gender'=>$data['gender'],
                 'password' => Hash::make($data['password']),
             ]);
-
+    
+            // إذا فيه صورة مرفوعة نخزنها
+            if (isset($data['profile_image'])) {
+                $path = $data['profile_image']->store('profile_images', 'public');
+                $user->profileImage()->create([
+                    'url' => $path
+                ]);
+            } else {
+                // صورة افتراضية
+                $user->profileImage()->create([
+                    'url' => 'public/default/n.png' // احفظ صورة default في public/storage/default
+                ]);
+            }
+    
             // تعيين الدور
             $role = Role::firstOrCreate([
                 'name' => 'user',
                 'guard_name' => 'api'
             ]);
-
+    
             $user->assignRole($role);
-
-            // إنشاء التوكن باستخدام JWT
+    
+            // إنشاء التوكن
             $token = auth('api')->login($user);
-
+    
             return [
-                'user' => $user->load('roles'),
+                'user' => $user->load('roles', 'profileImage'),
                 'token' => $token
             ];
         } catch (\Exception $e) {
@@ -38,6 +54,7 @@ class UserAuthService
             throw new \Exception('فشل عملية التسجيل', 500);
         }
     }
+    
 
     public function loginUser(array $credentials): array
     {
@@ -45,16 +62,38 @@ class UserAuthService
             if (!$token = auth('api')->attempt($credentials)) {
                 throw new \Exception('بيانات الاعتماد غير صحيحة', 401);
             }
-
+    
+            $user = auth('api')->user()->load('roles', 'profileImage');
+    
+            // جلب البوستات مع بيانات صاحب البوست وصورته
+            $posts = Post::with([
+                    'author.profileImage', // صورة صاحب البوست
+                    'images',
+                    'videos',
+                    'comments'
+                ])
+                ->withCount([
+                    'likes as likes_count',
+                    'dislikes as dislikes_count',
+                ])
+                ->with(['reactions' => function ($query) {
+                    $query->where('user_id', auth()->id());
+                }])
+                ->latest()
+                ->take(10)
+                ->get();
+    
             return [
-                'user' => auth('api')->user()->load('roles'),
-                'token' => $token
+                'user'  => $user,
+                'token' => $token,
+                'posts' => $posts
             ];
         } catch (\Exception $e) {
-            Log::error('Login failed: ' . $e->getMessage());
+            \Log::error('Login failed: ' . $e->getMessage());
             throw $e;
         }
     }
+    
 
     public function logoutUser(): void
     {

@@ -29,19 +29,17 @@ return [
     */
 
     'connections' => [
-
         'pusher' => [
-            'default' => env('BROADCAST_DRIVER', 'pusher'),
             'driver' => 'pusher',
-            'key' => env('PUSHER_APP_KEY'),
+            'key' => env('PUSHER_APP_KEY', 'local'),
             'secret' => env('PUSHER_APP_SECRET'),
             'app_id' => env('PUSHER_APP_ID'),
             'options' => [
-                'cluster' => env('PUSHER_APP_CLUSTER'),
+                'cluster' => env('PUSHER_APP_CLUSTER', 'mt1'),
                 'useTLS' => false,
-                'host' => env('PUSHER_HOST'),
-                'port' => env('PUSHER_PORT'),
-                'scheme' => env('PUSHER_SCHEME'),
+                'host' => env('PUSHER_HOST', '192.168.1.101'),
+                'port' => env('PUSHER_PORT', 6001),
+                'scheme' => env('PUSHER_SCHEME', 'http'),
             ],
         
             'client_options' => [

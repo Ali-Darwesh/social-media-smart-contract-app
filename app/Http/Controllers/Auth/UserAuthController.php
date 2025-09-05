@@ -46,6 +46,7 @@ class UserAuthController extends Controller
                 'success' => true,
                 'message' => 'تم تسجيل الدخول بنجاح',
                 'token' => $result['token'],
+                'posts'=>$result['posts'],
                 'user' => $result['user']
             ]);
         } catch (\Exception $e) {

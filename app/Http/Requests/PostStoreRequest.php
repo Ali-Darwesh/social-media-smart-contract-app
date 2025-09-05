@@ -9,7 +9,8 @@ class PostStoreRequest extends FormRequest
 {
     public function authorize()
     {
-        return auth()->user()->can('create post');
+       // return auth()->user()->can('create post');
+       return true;
     }
 
     public function rules()
@@ -18,9 +19,9 @@ class PostStoreRequest extends FormRequest
             'content' => 'required|string|max:5000',
             'details' => 'nullable|string|max:1000',
             'images' => 'nullable|array|max:10',
-            'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:4096',
+            'images.*' => 'file|image|mimes:jpeg,png,jpg,gif|max:2024000',
             'videos' => 'nullable|array|max:3',
-            'videos.*' => 'mimetypes:video/mp4,video/quicktime|max:102400'
+            'videos.*' => 'file|mimetypes:video/*,video/quicktime|max:2024000'
         ];
     }
 

@@ -45,7 +45,7 @@ class PostService
         foreach ($images as $image) {
             $path = $image->store('posts/images', 'public');
             $post->images()->create([
-                'url' => asset("storage/$path"),
+                'url' => $path,
                 'type' => 'post_image'
             ]);
         }
@@ -56,7 +56,7 @@ class PostService
         foreach ($videos as $video) {
             $path = $video->store('posts/videos', 'public');
             $post->videos()->create([
-                'url' => asset("storage/$path"),
+                'url' =>$path,
                 'type' => 'post_video'
             ]);
         }

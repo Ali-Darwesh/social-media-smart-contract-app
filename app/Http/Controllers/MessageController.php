@@ -22,15 +22,16 @@ class MessageController extends Controller
         $cacheKey = "chat_messages_{$chat->id}";
     
         // جلب الرسائل من الكاش أو قاعدة البيانات
-        $messages = Cache::remember($cacheKey, now()->forever(), function () use ($chat) {
+        $messages = Cache::remember($cacheKey, now()->addHour(), function () use ($chat) {
             return $chat->messages()
                 ->with('sender')
                 ->orderByDesc('created_at')
                 ->limit(100)
                 ->get()
                 ->reverse()
-                ->values(); // نحطهم من الأقدم للأحدث
+                ->values();
         });
+        
     
         return response()->json($messages);
     }
