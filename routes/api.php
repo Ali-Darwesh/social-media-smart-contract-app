@@ -198,6 +198,7 @@ Route::post('/update_clause/{clause}', [ClauseController::class, 'update']);
 Route::post('/accepte_clause/{id}', [ClauseController::class, 'accepteClause']);
 Route::post('/delete/{id}', [ClauseController::class, 'destroy']);
 
+Route::get('/contracts/{id}/export-pdf', [ContractController::class, 'exportContractPdf']);
 
 
 

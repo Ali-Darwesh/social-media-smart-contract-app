@@ -16,6 +16,7 @@ class Contract extends Model
         'serviceProvider',
         'totalAmount',
         'status',
+        'pdf_path',
     ];
 
     // Contract.php

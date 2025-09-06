@@ -17,8 +17,9 @@ return new class extends Migration
             $table->string('contract_address')->unique()->nullable();   // On-chain contract address
             $table->string('client')->nullable();               // Wallet address of client
             $table->string('serviceProvider')->nullable();     // Wallet address of service provider
-            $table->unsignedBigInteger('totalAmount')->nullable(); // Only whole USD, no decimals
+            $table->unsignedBigInteger('totalAmount')->nullable();
             $table->enum('status', ['Draft', 'PendingApproval', 'Active', 'Rejected', 'Completed'])->default('Draft');
+            $table->string('pdf_path')->nullable();
             $table->timestamps();
         });
     }

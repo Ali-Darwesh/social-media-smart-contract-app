@@ -11,6 +11,8 @@ use App\Models\User;
 use App\Services\Contract\ContractService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Storage;
 
 class ContractController extends Controller
 {
@@ -98,4 +100,31 @@ class ContractController extends Controller
     }
 
     public function attachUser(Request $request) {}
+
+
+
+    public function exportContractPdf($id)
+    {
+        $contract = Contract::with('clauses', 'users')->findOrFail($id);
+
+        // Generate PDF
+        $pdf = Pdf::loadView('contracts.pdf', compact('contract'));
+
+        // File name
+        $fileName = "contract-{$contract->id}.pdf";
+
+        // Save PDF into storage/app/public/contracts
+        $filePath = "contracts/{$fileName}";
+        Storage::disk('public')->put($filePath, $pdf->output());
+
+        // Save path in DB
+        $contract->update([
+            'pdf_path' => $filePath,
+        ]);
+
+        return response()->json([
+            'message' => 'Contract PDF generated & saved successfully',
+            'download_url' => asset("storage/{$filePath}")
+        ]);
+    }
 }

@@ -34,7 +34,7 @@ class ClauseController extends Controller
     {
         $data = $request->validated();
         $clause = $this->clauseService->createClause($id, $data);
-        broadcast(new ClauseSent($clause['clause']))->toOthers();
+        // broadcast(new ClauseSent($clause['clause']))->toOthers();
         return response()->json([
             'message' => $clause['message'],
             'clause' => $clause['clause'],

@@ -19,6 +19,7 @@ class ClauseService
                 'approved_by_b' => strtolower($data['proposer_address']) === strtolower($contract->serviceProvider),
                 'executed' => false,
                 'amount_usd' => $data['amount_usd'],
+                'due_date' => $data['due_date'],
             ]);
 
             return [

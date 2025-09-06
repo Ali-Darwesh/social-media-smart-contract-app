@@ -89,6 +89,10 @@ class ContractTransactionsController extends Controller
                 'serviceProvider' => $serviceProvider,
                 'totalAmount' => $totalAmount
             ]);
+
+            $this->contractService->updateUserAddresses($contract, $client, $serviceProvider);
+
+
             $clauses = Contract::with('approvedClauses')->findOrFail($id);
             foreach ($clauses->approvedClauses as $clause) {
                 $this->contractTransactionService->addApprovedClause(

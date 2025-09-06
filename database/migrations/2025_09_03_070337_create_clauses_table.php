@@ -20,6 +20,7 @@ return new class extends Migration
             $table->boolean('approved_by_b')->default(false);
             $table->boolean('executed')->default(false);
             $table->unsignedBigInteger('amount_usd'); // Only whole USD
+            $table->date('due_date');
             $table->timestamps();
         });
     }

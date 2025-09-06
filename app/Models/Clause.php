@@ -17,6 +17,7 @@ class Clause extends Model
         'approved_by_b',
         'executed',
         'amount_usd',
+        'due_date'
     ];
 
     public function contract()
