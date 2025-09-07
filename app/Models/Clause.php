@@ -12,7 +12,6 @@ class Clause extends Model
     protected $fillable = [
         'contract_id',
         'text',
-        'proposer_address',
         'approved_by_a',
         'approved_by_b',
         'executed',

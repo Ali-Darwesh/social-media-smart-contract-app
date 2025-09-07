@@ -14,9 +14,8 @@ class ClauseService
         try {
             $clause = $contract->clauses()->create([
                 'text' => $data['text'],
-                'proposer_address' => strtolower($data['proposer_address']),
-                'approved_by_a' => strtolower($data['proposer_address']) === strtolower($contract->client),
-                'approved_by_b' => strtolower($data['proposer_address']) === strtolower($contract->serviceProvider),
+                'approved_by_a' => $data['approved_by_a'] ?? false,
+                'approved_by_b' => $data['approved_by_b'] ?? false,
                 'executed' => false,
                 'amount_usd' => $data['amount_usd'],
                 'due_date' => $data['due_date'],

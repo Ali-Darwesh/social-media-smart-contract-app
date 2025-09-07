@@ -54,17 +54,13 @@ class ContractTransactionsController extends Controller
             'signature' => 'required|string',
             'client' => 'required|string',
             'serviceProvider' => 'required|string',
-            'totalAmount' => 'required|numeric'
         ]);
 
         $message = $request->message;
         $signature = $request->signature;
         $client = $request->client;
         $serviceProvider = $request->serviceProvider;
-        $totalAmount = $request->totalAmount; // in ETH
-        $totalAmount_in_wei = $this->convertUsdToWei($totalAmount);
-        $totalAmount_in_wei_hex = $this->bigDecToHex($totalAmount_in_wei);
-        echo ($totalAmount_in_wei_hex);
+
         try {
             // 2. Verify the signature -> recover signer
             $recovered = $this->verifySignature($message, $signature);
@@ -72,9 +68,12 @@ class ContractTransactionsController extends Controller
             if (strtolower($recovered) !== strtolower($client)) {
                 return response()->json(['error' => 'Invalid signature'], 401);
             }
+            $contract = Contract::findOrFail($id);
+            $clauses = Contract::with('approvedClauses')->findOrFail($id);
 
-
-
+            $totalAmount = $contract->approvedClauses->sum('amount_usd');
+            $totalAmount_in_wei = $this->convertUsdToWei($totalAmount);
+            $totalAmount_in_wei_hex = $this->bigDecToHex($totalAmount_in_wei);
             // 4. Compute totalAmount in Wei
             $result = $this->contractTransactionService->deployContract(
                 $client,
@@ -82,7 +81,6 @@ class ContractTransactionsController extends Controller
                 $totalAmount_in_wei,
                 $totalAmount_in_wei_hex
             );
-            $contract = Contract::findOrFail($id);
             $contractDB = $this->contractService->updateContract($contract, [
                 'contract_address' => $result['contractAddress'],
                 'client' => $client,
@@ -93,13 +91,12 @@ class ContractTransactionsController extends Controller
             $this->contractService->updateUserAddresses($contract, $client, $serviceProvider);
 
 
-            $clauses = Contract::with('approvedClauses')->findOrFail($id);
             foreach ($clauses->approvedClauses as $clause) {
                 $this->contractTransactionService->addApprovedClause(
                     $result['contractAddress'],
                     $clause['text'],
                     $this->convertUsdToWei($clause['amount_usd']),
-                    $clause['proposer_address'],
+                    $client
 
 
                 );
@@ -110,7 +107,6 @@ class ContractTransactionsController extends Controller
                 'txHash' => $result['txHash'],
                 'contractAddress' => $result['contractAddress'],
                 'contractDB' => $contractDB,
-                'attachUsers' => $contractDB['attachUsers'],
             ]);
         } catch (Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);

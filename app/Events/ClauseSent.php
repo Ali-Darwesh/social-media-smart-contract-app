@@ -33,7 +33,6 @@ class ClauseSent implements ShouldBroadcast
         return [
             'id' => $this->clause->id,
             'text' => $this->clause->text,
-            'proposer_address' => $this->clause->proposer_address,
             'amount_usd' => $this->clause->amount_usd,
             'created_at' => $this->clause->created_at->toDateTimeString(),
         ];

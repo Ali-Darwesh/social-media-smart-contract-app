@@ -15,7 +15,6 @@ return new class extends Migration
             $table->id();
             $table->foreignId('contract_id')->constrained('contracts')->onDelete('cascade');
             $table->text('text');
-            $table->string('proposer_address');
             $table->boolean('approved_by_a')->default(false);
             $table->boolean('approved_by_b')->default(false);
             $table->boolean('executed')->default(false);

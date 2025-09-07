@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-contract ServiceAgreement is Ownable {
+contract ServiceAgreement {
     enum Status {
         Draft,
         PendingApproval,
@@ -51,35 +51,31 @@ contract ServiceAgreement is Ownable {
 
     event DebugDeploy(
         address deployer,
-        address client,
         address serviceProvider,
         uint256 totalEth,
         uint256 msgValue
     );
 
-    constructor(
-        address _client,
-        address _serviceProvider,
-        uint256 _totalAmountInEth
-    ) payable Ownable(_client) {
+    constructor(address _serviceProvider, uint256 _totalAmountInEth) payable {
         emit DebugDeploy(
             msg.sender,
-            _client,
             _serviceProvider,
             _totalAmountInEth,
             msg.value
         );
 
-        require(_client != _serviceProvider, "Parties must differ");
+        require(msg.sender != _serviceProvider, "Parties must differ");
 
-        uint256 _totalAmountInWei = _totalAmountInEth * 1 ether;
-        require(msg.value == _totalAmountInWei, "Must fund total amount");
+        // uint256 _totalAmountInWei = _totalAmountInEth * 1 ether;
+        require(msg.value == _totalAmountInEth, "Must fund total amount");
 
-        client = _client; // now passed from backend
+        client = msg.sender; // now passed from backend
         serviceProvider = _serviceProvider;
-        totalAmount = _totalAmountInWei;
+        totalAmount = _totalAmountInEth;
         status = Status.Draft;
         createdAt = block.timestamp;
+
+        // Refund deployer (helper) and keep funds locked from client
     }
 
     function addClause(
@@ -101,6 +97,33 @@ contract ServiceAgreement is Ownable {
                 proposer: msg.sender,
                 approvedByA: msg.sender == client,
                 approvedByB: msg.sender == serviceProvider,
+                executed: false,
+                amount: _amount
+            })
+        );
+
+        status = Status.Draft;
+    }
+
+    function addApprovedClause(
+        string memory _text,
+        uint256 _amount
+    ) external onlyParticipants {
+        require(_amount > 0, "Clause amount must be > 0");
+
+        uint256 allocated = 0;
+        for (uint i = 0; i < clauses.length; i++) {
+            allocated += clauses[i].amount;
+        }
+
+        require(allocated + _amount <= totalAmount, "Exceeds total budget");
+
+        clauses.push(
+            Clause({
+                text: _text,
+                proposer: msg.sender,
+                approvedByA: true,
+                approvedByB: true,
                 executed: false,
                 amount: _amount
             })
@@ -154,9 +177,9 @@ contract ServiceAgreement is Ownable {
         require(index < clauses.length, "Invalid clause index");
 
         Clause storage clause = clauses[index];
-        if (msg.sender == client) {
+        if (msg.sender == client && !clause.approvedByA) {
             clause.approvedByA = true;
-        } else {
+        } else if (msg.sender == serviceProvider && !clause.approvedByB) {
             clause.approvedByB = true;
         }
 

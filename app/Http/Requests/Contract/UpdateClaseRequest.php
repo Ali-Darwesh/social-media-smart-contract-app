@@ -18,9 +18,8 @@ class UpdateClaseRequest extends FormRequest
     {
         return [
             'text' => 'sometimes|string|max:1000',
-            'proposer_address' => 'sometimes|string',
-            'approved_by_a' => 'sometimes|string',
-            'approved_by_b' => 'sometimes|string',
+            'approved_by_a' => 'sometimes|boolean',
+            'approved_by_b' => 'sometimes|boolean',
             'amount_usd' => 'sometimes|integer|min:1',
         ];
     }

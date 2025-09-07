@@ -15,7 +15,6 @@ class StoreClauseRequest extends FormRequest
     {
         return [
             'text' => 'required|string|max:1000',
-            'proposer_address' => 'required|string',
             'amount_usd' => 'required|integer|min:1',
             'due_date' => 'required|date|after_or_equal:today',
         ];
